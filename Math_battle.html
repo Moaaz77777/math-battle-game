@@ -1,0 +1,352 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Math Battle Game</title>
+
+<style>
+body {
+    margin:0;
+    font-family: Arial;
+    background: linear-gradient(135deg, #ff512f, #dd2476);
+    color:white;
+    text-align:center;
+}
+
+h1 { font-size:40px; }
+
+/* TEAM BAR */
+#teamBar {
+    font-size:22px;
+    margin:10px;
+}
+
+/* GRID */
+#grid {
+    display:grid;
+    grid-template-columns: repeat(5,1fr);
+    gap:10px;
+    padding:20px;
+}
+
+.box {
+    background: linear-gradient(45deg,#ff6a00,#ff0000);
+    padding:30px;
+    font-size:22px;
+    border-radius:10px;
+    cursor:pointer;
+}
+
+.used {
+    background:#444;
+    pointer-events:none;
+}
+
+/* POPUP */
+#popup {
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background: linear-gradient(135deg,#1a2a6c,#b21f1f,#fdbb2d);
+    display:none;
+}
+
+#question {
+    position:absolute;
+    top:40%;
+    left:50%;
+    transform:translate(-50%,-50%);
+    font-size:34px;
+}
+
+#answer {
+    position:absolute;
+    top:55%;
+    left:50%;
+    transform:translateX(-50%);
+    font-size:28px;
+    color:yellow;
+}
+
+#difficulty {
+    position:absolute;
+    top:20px;
+    left:20px;
+    font-size:26px;
+}
+
+#timer {
+    position:absolute;
+    top:20px;
+    right:20px;
+    font-size:32px;
+}
+
+#points {
+    position:absolute;
+    bottom:20px;
+    right:20px;
+    font-size:26px;
+}
+
+#action {
+    position:absolute;
+    bottom:20px;
+    left:20px;
+}
+
+button {
+    font-size:22px;
+    padding:10px 15px;
+    margin:5px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+.addBtn { background:green; color:white; }
+.minusBtn { background:red; color:white; }
+
+#closeBtn {
+    position:absolute;
+    bottom:20px;
+    right:200px;
+}
+
+/* WINNER */
+#winnerScreen {
+    position:fixed;
+    top:0;
+    left:0;
+    width:100%;
+    height:100%;
+    background: linear-gradient(135deg,#00c9ff,#92fe9d);
+    display:none;
+    color:black;
+    font-size:40px;
+    padding-top:100px;
+}
+
+/* FIREWORK */
+.particle {
+    position:absolute;
+    width:6px;
+    height:6px;
+    border-radius:50%;
+}
+</style>
+</head>
+
+<body>
+
+<h1>⚔️ Math Battle Game ⚔️</h1>
+
+<div id="setup">
+Team 1: <input id="team1">
+Team 2: <input id="team2">
+<button onclick="startGame()">Start</button>
+</div>
+
+<div id="teamBar"></div>
+<div id="grid"></div>
+
+<div id="popup">
+    <div id="difficulty"></div>
+    <div id="timer"></div>
+
+    <div id="question"></div>
+    <div id="answer"></div>
+
+    <div id="points"></div>
+
+    <div id="action"></div>
+
+    <button onclick="showAnswer()">Show Answer</button>
+    <button id="closeBtn" onclick="closeQ()">Close</button>
+</div>
+
+<div id="winnerScreen">
+    <div id="winnerText"></div>
+    <br><br>
+    <div id="scores"></div>
+</div>
+
+<script>
+
+let teams=[], scores=[0,0], used=0, turn=0, currentQ, timerInt;
+
+let questions=[
+{q:"Volume cube side 3?",a:"27",p:10,d:"Easy",t:20},
+{q:"Surface area cube side 4?",a:"96",p:10,d:"Easy",t:20},
+{q:"Volume prism 2×3×4?",a:"24",p:10,d:"Easy",t:20},
+{q:"Volume sphere r=3?",a:"113.1",p:20,d:"Medium",t:40},
+{q:"Surface area sphere r=2?",a:"50.3",p:20,d:"Medium",t:40},
+{q:"Volume cylinder r=3 h=5?",a:"141.4",p:20,d:"Medium",t:40},
+{q:"Surface area cylinder r=2 h=6?",a:"100.5",p:20,d:"Medium",t:40},
+{q:"Volume triangular prism?",a:"120",p:30,d:"Hard",t:60},
+{q:"Lateral area cube side 5?",a:"100",p:20,d:"Medium",t:40},
+{q:"Volume cube side 6?",a:"216",p:10,d:"Easy",t:20},
+
+{q:"Surface area prism 2×3×4?",a:"52",p:20,d:"Medium",t:40},
+{q:"Volume cylinder r=2 h=10?",a:"125.7",p:20,d:"Medium",t:40},
+{q:"Surface area sphere r=5?",a:"314.2",p:30,d:"Hard",t:60},
+{q:"Volume sphere r=4?",a:"268.1",p:30,d:"Hard",t:60},
+{q:"Lateral area cylinder r=3 h=7?",a:"131.9",p:20,d:"Medium",t:40},
+
+{q:"Volume prism 5×5×2?",a:"50",p:10,d:"Easy",t:20},
+{q:"Surface area cube side 7?",a:"294",p:20,d:"Medium",t:40},
+{q:"Volume cylinder r=4 h=3?",a:"150.8",p:20,d:"Medium",t:40},
+{q:"Surface area sphere r=6?",a:"452.4",p:30,d:"Hard",t:60},
+{q:"Volume triangular prism?",a:"120",p:30,d:"Hard",t:60}
+];
+
+function startGame(){
+    teams=[
+        document.getElementById("team1").value || "Team 1",
+        document.getElementById("team2").value || "Team 2"
+    ];
+
+    document.getElementById("setup").style.display="none";
+
+    document.getElementById("teamBar").innerHTML=
+    `${teams[0]}: <span id="s0">0</span> ⚔️ ${teams[1]}: <span id="s1">0</span>`;
+
+    createGrid();
+}
+
+function createGrid(){
+    let grid=document.getElementById("grid");
+    grid.innerHTML="";
+
+    questions.forEach((q,i)=>{
+        let box=document.createElement("div");
+        box.className="box";
+        box.innerText=i+1;
+
+        box.onclick=()=>{
+            openQ(q);
+            box.classList.add("used");
+            used++;
+        };
+
+        grid.appendChild(box);
+    });
+}
+
+function openQ(q){
+    currentQ=q;
+    document.getElementById("popup").style.display="block";
+
+    document.getElementById("question").innerText=q.q;
+    document.getElementById("answer").innerText="";
+    document.getElementById("difficulty").innerText=q.d;
+    document.getElementById("points").innerText="Points: "+q.p;
+
+    let teamIndex=turn%2;
+
+    document.getElementById("action").innerHTML=
+    `<button class="addBtn" onclick="add(${teamIndex})">+ ${teams[teamIndex]}</button>
+     <button class="minusBtn" onclick="minus(${teamIndex})">- ${teams[teamIndex]}</button>`;
+
+    turn++;
+
+    let t=q.t;
+    document.getElementById("timer").innerText=t;
+
+    clearInterval(timerInt);
+    timerInt=setInterval(()=>{
+        t--;
+        document.getElementById("timer").innerText=t;
+        if(t<=0){
+            clearInterval(timerInt);
+            showAnswer();
+        }
+    },1000);
+}
+
+function showAnswer(){
+    document.getElementById("answer").innerText="Answer: "+currentQ.a;
+}
+
+function add(i){
+    scores[i]+=currentQ.p;
+    updateScore();
+    closeQ();
+}
+
+function minus(i){
+    scores[i]-=currentQ.p;
+    updateScore();
+    closeQ();
+}
+
+function updateScore(){
+    document.getElementById("s0").innerText=scores[0];
+    document.getElementById("s1").innerText=scores[1];
+}
+
+function closeQ(){
+    document.getElementById("popup").style.display="none";
+    clearInterval(timerInt);
+    if(used===20) showWinner();
+}
+
+function firework(x,y){
+    for(let i=0;i<30;i++){
+        let p=document.createElement("div");
+        p.className="particle";
+        p.style.background=`hsl(${Math.random()*360},100%,50%)`;
+        p.style.left=x+"px";
+        p.style.top=y+"px";
+
+        let angle=Math.random()*2*Math.PI;
+        let speed=Math.random()*5;
+
+        let vx=Math.cos(angle)*speed;
+        let vy=Math.sin(angle)*speed;
+
+        document.body.appendChild(p);
+
+        let life=60;
+        let int=setInterval(()=>{
+            life--;
+            vx*=0.98;
+            vy*=0.98;
+            vy+=0.05;
+
+            p.style.left=(parseFloat(p.style.left)+vx)+"px";
+            p.style.top=(parseFloat(p.style.top)+vy)+"px";
+            p.style.opacity=life/60;
+
+            if(life<=0){
+                clearInterval(int);
+                p.remove();
+            }
+        },16);
+    }
+}
+
+function showWinner(){
+    let win=scores[0]>scores[1]?0:1;
+    let lose=win===0?1:0;
+
+    document.getElementById("winnerScreen").style.display="block";
+
+    document.getElementById("winnerText").innerHTML=
+    `👑 ${teams[win]} 🏆<br><br>
+     ❌ ${teams[lose]} (LOSER)`;
+
+    document.getElementById("scores").innerHTML=
+    `${teams[0]}: ${scores[0]}<br><br>${teams[1]}: ${scores[1]}`;
+
+    setInterval(()=>{
+        firework(Math.random()*window.innerWidth, Math.random()*window.innerHeight/2);
+    },500);
+}
+
+</script>
+
+</body>
+</html>
