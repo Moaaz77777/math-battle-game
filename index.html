@@ -1,352 +1,506 @@
+html
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Math Battle Game</title>
-
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Alveoli Team Quiz</title>
 <style>
-body {
-    margin:0;
-    font-family: Arial;
-    background: linear-gradient(135deg, #ff512f, #dd2476);
-    color:white;
-    text-align:center;
+body{
+margin:0;
+font-family:Arial;
+background:linear-gradient(135deg,#021526,#03346E,#6EACDA);
+color:white;
+text-align:center;
+overflow-x:hidden;
 }
 
-h1 { font-size:40px; }
-
-/* TEAM BAR */
-#teamBar {
-    font-size:22px;
-    margin:10px;
+.screen{
+padding:20px;
+display:none;
 }
 
-/* GRID */
-#grid {
-    display:grid;
-    grid-template-columns: repeat(5,1fr);
-    gap:10px;
-    padding:20px;
+.active{
+display:block;
 }
 
-.box {
-    background: linear-gradient(45deg,#ff6a00,#ff0000);
-    padding:30px;
-    font-size:22px;
-    border-radius:10px;
-    cursor:pointer;
+.card{
+background:rgba(255,255,255,0.12);
+backdrop-filter:blur(10px);
+padding:20px;
+border-radius:25px;
+margin:20px auto;
+max-width:1000px;
+box-shadow:0 0 25px rgba(0,0,0,0.5);
 }
 
-.used {
-    background:#444;
-    pointer-events:none;
+button{
+padding:12px 22px;
+border:none;
+border-radius:15px;
+background:#00C2FF;
+color:white;
+font-size:18px;
+margin:10px;
+cursor:pointer;
+transition:0.3s;
 }
 
-/* POPUP */
-#popup {
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background: linear-gradient(135deg,#1a2a6c,#b21f1f,#fdbb2d);
-    display:none;
+button:hover{
+transform:scale(1.08);
+background:#00E5FF;
 }
 
-#question {
-    position:absolute;
-    top:40%;
-    left:50%;
-    transform:translate(-50%,-50%);
-    font-size:34px;
+#wheel{
+width:450px;
+height:450px;
+border-radius:50%;
+margin:auto;
+border:12px solid white;
+position:relative;
+overflow:hidden;
+transition:transform 5s ease-out;
 }
 
-#answer {
-    position:absolute;
-    top:55%;
-    left:50%;
-    transform:translateX(-50%);
-    font-size:28px;
-    color:yellow;
+.slice{
+position:absolute;
+width:50%;
+height:50%;
+transform-origin:100% 100%;
+left:0;
+top:0;
+clip-path:polygon(0 0,100% 0,100% 100%);
 }
 
-#difficulty {
-    position:absolute;
-    top:20px;
-    left:20px;
-    font-size:26px;
+.pointer{
+width:0;
+height:0;
+border-left:25px solid transparent;
+border-right:25px solid transparent;
+border-top:50px solid gold;
+margin:auto;
 }
 
-#timer {
-    position:absolute;
-    top:20px;
-    right:20px;
-    font-size:32px;
+.team-box{
+display:inline-block;
+vertical-align:top;
+background:#ffffff22;
+padding:15px;
+margin:15px;
+border-radius:20px;
+min-width:250px;
 }
 
-#points {
-    position:absolute;
-    bottom:20px;
-    right:20px;
-    font-size:26px;
+.player{
+padding:10px;
+margin:5px;
+background:#ffffff22;
+border-radius:10px;
 }
 
-#action {
-    position:absolute;
-    bottom:20px;
-    left:20px;
+.timer{
+font-size:40px;
+color:gold;
+margin:20px;
 }
 
-button {
-    font-size:22px;
-    padding:10px 15px;
-    margin:5px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
+.question{
+font-size:28px;
+margin:20px;
 }
 
-.addBtn { background:green; color:white; }
-.minusBtn { background:red; color:white; }
-
-#closeBtn {
-    position:absolute;
-    bottom:20px;
-    right:200px;
+.answer-btn{
+display:block;
+width:70%;
+margin:10px auto;
 }
 
-/* WINNER */
-#winnerScreen {
-    position:fixed;
-    top:0;
-    left:0;
-    width:100%;
-    height:100%;
-    background: linear-gradient(135deg,#00c9ff,#92fe9d);
-    display:none;
-    color:black;
-    font-size:40px;
-    padding-top:100px;
+.winner{
+font-size:55px;
+animation:pulse 1s infinite;
 }
 
-/* FIREWORK */
-.particle {
-    position:absolute;
-    width:6px;
-    height:6px;
-    border-radius:50%;
+@keyframes pulse{
+0%{transform:scale(1)}
+50%{transform:scale(1.08)}
+100%{transform:scale(1)}
 }
 </style>
 </head>
-
 <body>
 
-<h1>⚔️ Math Battle Game ⚔️</h1>
-
-<div id="setup">
-Team 1: <input id="team1">
-Team 2: <input id="team2">
-<button onclick="startGame()">Start</button>
+<div id="start" class="screen active">
+<div class="card">
+<h1>🫁 Alveoli Quiz Game</h1>
+<h2>Select Number of Teams</h2>
+<button onclick="chooseTeams(2)">2 Teams</button>
+<button onclick="chooseTeams(3)">3 Teams</button>
+</div>
 </div>
 
-<div id="teamBar"></div>
-<div id="grid"></div>
-
-<div id="popup">
-    <div id="difficulty"></div>
-    <div id="timer"></div>
-
-    <div id="question"></div>
-    <div id="answer"></div>
-
-    <div id="points"></div>
-
-    <div id="action"></div>
-
-    <button onclick="showAnswer()">Show Answer</button>
-    <button id="closeBtn" onclick="closeQ()">Close</button>
+<div id="spinnerScreen" class="screen">
+<div class="card">
+<h1>🎡 Spin The Wheel</h1>
+<div class="pointer"></div>
+<div id="wheel"></div>
+<br>
+<button onclick="spinWheel()">SPIN</button>
+<h2 id="selectedName"></h2>
+</div>
 </div>
 
-<div id="winnerScreen">
-    <div id="winnerText"></div>
-    <br><br>
-    <div id="scores"></div>
+<div id="teamsScreen" class="screen">
+<div class="card">
+<h1>👥 Teams</h1>
+<div id="teamsContainer"></div>
+<button onclick="startQuiz()">Done</button>
+</div>
+</div>
+
+<div id="quizScreen" class="screen">
+<div class="card">
+<h1 id="teamTurn"></h1>
+<h2 id="difficulty"></h2>
+<h2 id="points"></h2>
+<div class="timer" id="timer"></div>
+<div class="question" id="question"></div>
+<div id="answers"></div>
+<button onclick="showAnswer()">Show Answer</button>
+<button onclick="correctAnswer()">Correct</button>
+<button onclick="wrongAnswer()">Wrong</button>
+<h2 id="realAnswer"></h2>
+<div id="scoreboard"></div>
+</div>
+</div>
+
+<!-- BONUS SCREEN -->
+<div id="bonusScreen" class="screen">
+  <div class="card">
+    <h1>🔥 BONUS QUESTION</h1>
+    <div class="timer" id="bonusTimer"></div>
+    <div class="question" id="bonusQuestion"></div>
+    <h2 id="bonusAnswer" style="display:none;"></h2>
+    <button onclick="showBonusAnswer()">Show Answer</button>
+    <button onclick="giveBonus(0)">Team 1 Correct</button>
+    <button onclick="giveBonus(1)">Team 2 Correct</button>
+    <button id="team3bonus" onclick="giveBonus(2)">Team 3 Correct</button>
+  </div>
+</div>
+
+<script>
+function showBonus(){
+  showScreen('bonusScreen');
+  const bonus = { q:'What process allows gas exchange?', a:'Diffusion' };
+  bonusQuestion.innerHTML = bonus.q;
+  bonusAnswer.innerHTML = 'Answer: ' + bonus.a;
+  bonusAnswer.style.display = "none"; // hide initially
+  let t = 30;
+  bonusTimer.innerHTML = t;
+  let x = setInterval(()=>{
+    t--;
+    bonusTimer.innerHTML = t;
+    if(t<=0) clearInterval(x);
+  },1000);
+  if(teamCount===2){
+    document.getElementById('team3bonus').style.display='none';
+  }
+}
+function showBonusAnswer(){
+  document.getElementById("bonusAnswer").style.display = "block";
+}
+</script>
+
+<div id="winnerScreen" class="screen">
+<div class="card">
+<div class="winner" id="winnerText"></div>
+<div id="finalScores"></div>
+</div>
 </div>
 
 <script>
 
-let teams=[], scores=[0,0], used=0, turn=0, currentQ, timerInt;
+const names=["Hassan","Yassin","Youssef","Abdelrahman","Lojina","Salma","Hana","Rokaya","Jwayria"];
 
-let questions=[
-{q:"Volume cube side 3?",a:"27",p:10,d:"Easy",t:20},
-{q:"Surface area cube side 4?",a:"96",p:10,d:"Easy",t:20},
-{q:"Volume prism 2×3×4?",a:"24",p:10,d:"Easy",t:20},
-{q:"Volume sphere r=3?",a:"113.1",p:20,d:"Medium",t:40},
-{q:"Surface area sphere r=2?",a:"50.3",p:20,d:"Medium",t:40},
-{q:"Volume cylinder r=3 h=5?",a:"141.4",p:20,d:"Medium",t:40},
-{q:"Surface area cylinder r=2 h=6?",a:"100.5",p:20,d:"Medium",t:40},
-{q:"Volume triangular prism?",a:"120",p:30,d:"Hard",t:60},
-{q:"Lateral area cube side 5?",a:"100",p:20,d:"Medium",t:40},
-{q:"Volume cube side 6?",a:"216",p:10,d:"Easy",t:20},
+let teamCount=2;
+let teams=[];
+let scores=[];
+let currentQuestion=0;
+let currentTeam=0;
+let spinIndex=0;
+let assigned=[];
+let timer;
 
-{q:"Surface area prism 2×3×4?",a:"52",p:20,d:"Medium",t:40},
-{q:"Volume cylinder r=2 h=10?",a:"125.7",p:20,d:"Medium",t:40},
-{q:"Surface area sphere r=5?",a:"314.2",p:30,d:"Hard",t:60},
-{q:"Volume sphere r=4?",a:"268.1",p:30,d:"Hard",t:60},
-{q:"Lateral area cylinder r=3 h=7?",a:"131.9",p:20,d:"Medium",t:40},
+const colors=["#FF6B6B","#4ECDC4","#FFD93D","#6BCB77","#4D96FF","#FF8FAB","#C77DFF","#F28482","#84A59D"];
 
-{q:"Volume prism 5×5×2?",a:"50",p:10,d:"Easy",t:20},
-{q:"Surface area cube side 7?",a:"294",p:20,d:"Medium",t:40},
-{q:"Volume cylinder r=4 h=3?",a:"150.8",p:20,d:"Medium",t:40},
-{q:"Surface area sphere r=6?",a:"452.4",p:30,d:"Hard",t:60},
-{q:"Volume triangular prism?",a:"120",p:30,d:"Hard",t:60}
-];
+const questionSets={
+2:[
+{q:"What are alveoli?",a:"Tiny air sacs",choices:["Bones","Tiny air sacs","Muscles","Cells"],p:10,t:10,d:"Easy"},
+{q:"Where are alveoli found?",a:"Lungs",choices:["Heart","Lungs","Kidney","Skin"],p:10,t:10,d:"Easy"},
+{q:"Which gas enters blood?",a:"Oxygen",choices:["Nitrogen","Oxygen","CO2","Argon"],p:10,t:10,d:"Easy"},
+{q:"What surrounds alveoli?",a:"Capillaries",choices:["Bones","Capillaries","Hair","Skin"],p:10,t:10,d:"Easy"},
+{q:"What process allows gas exchange?",a:"Diffusion",choices:["Digestion","Diffusion","Eating","Thinking"],p:20,t:20,d:"Medium"},
+{q:"What damages alveoli?",a:"Smoking",choices:["Exercise","Smoking","Water","Food"],p:20,t:20,d:"Medium"},
+{q:"What carries oxygen?",a:"Hemoglobin",choices:["Water","Hemoglobin","Bones","Muscles"],p:20,t:20,d:"Medium"},
+{q:"What disease fills alveoli with fluid?",a:"Pneumonia",choices:["Cancer","Pneumonia","Diabetes","Cold"],p:20,t:20,d:"Medium"},
+{q:"Why do alveoli have thin walls?",a:"Fast diffusion",choices:["Decoration","Fast diffusion","Protection","Movement"],p:30,t:30,d:"Hard"},
+{q:"Why are alveoli important?",a:"Gas exchange",choices:["Gas exchange","Movement","Digestion","Sleep"],p:30,t:30,d:"Hard"}
+],
+3:[
+{q:"What are alveoli?",a:"Tiny air sacs",choices:["Bones","Tiny air sacs","Muscles","Cells"],p:10,t:10,d:"Easy"},
+{q:"Where are alveoli found?",a:"Lungs",choices:["Heart","Lungs","Kidney","Skin"],p:10,t:10,d:"Easy"},
+{q:"Which gas enters blood?",a:"Oxygen",choices:["Nitrogen","Oxygen","CO2","Argon"],p:10,t:10,d:"Easy"},
+{q:"What surrounds alveoli?",a:"Capillaries",choices:["Bones","Capillaries","Hair","Skin"],p:20,t:20,d:"Medium"},
+{q:"What process allows gas exchange?",a:"Diffusion",choices:["Digestion","Diffusion","Eating","Thinking"],p:20,t:20,d:"Medium"},
+{q:"What damages alveoli?",a:"Smoking",choices:["Exercise","Smoking","Water","Food"],p:20,t:20,d:"Medium"},
+{q:"Why do alveoli have thin walls?",a:"Fast diffusion",choices:["Decoration","Fast diffusion","Protection","Movement"],p:30,t:30,d:"Hard"},
+{q:"Why are alveoli important?",a:"Gas exchange",choices:["Gas exchange","Movement","Digestion","Sleep"],p:30,t:30,d:"Hard"},
+{q:"How many alveoli do humans have?",a:"300 million",choices:["300","3000","300 million","3 million"],p:30,t:30,d:"Hard"}
+]
+};
 
-function startGame(){
-    teams=[
-        document.getElementById("team1").value || "Team 1",
-        document.getElementById("team2").value || "Team 2"
-    ];
-
-    document.getElementById("setup").style.display="none";
-
-    document.getElementById("teamBar").innerHTML=
-    `${teams[0]}: <span id="s0">0</span> ⚔️ ${teams[1]}: <span id="s1">0</span>`;
-
-    createGrid();
+function chooseTeams(n){
+teamCount=n;
+teams=[];
+scores=[];
+assigned=[];
+for(let i=0;i<n;i++){
+teams.push({name:`Team ${i+1}`,players:[]});
+scores.push(0);
+}
+createWheel();
+showScreen('spinnerScreen');
 }
 
-function createGrid(){
-    let grid=document.getElementById("grid");
-    grid.innerHTML="";
+function createWheel(){
+const wheel=document.getElementById('wheel');
+wheel.innerHTML='';
+const angle=360/names.length;
 
-    questions.forEach((q,i)=>{
-        let box=document.createElement("div");
-        box.className="box";
-        box.innerText=i+1;
-
-        box.onclick=()=>{
-            openQ(q);
-            box.classList.add("used");
-            used++;
-        };
-
-        grid.appendChild(box);
-    });
+names.forEach((name,i)=>{
+const slice=document.createElement('div');
+slice.className='slice';
+slice.style.background=colors[i];
+slice.style.transform=`rotate(${i*angle}deg) skewY(${90-angle}deg)`;
+slice.innerHTML=`<span style="position:absolute;right:20px;top:20px;font-size:14px;transform:skewY(-${90-angle}deg) rotate(${angle/2}deg)">${name}</span>`;
+wheel.appendChild(slice);
+});
 }
 
-function openQ(q){
-    currentQ=q;
-    document.getElementById("popup").style.display="block";
+function spinWheel(){
+if(assigned.length>=names.length){
+showTeams();
+return;
+}
 
-    document.getElementById("question").innerText=q.q;
-    document.getElementById("answer").innerText="";
-    document.getElementById("difficulty").innerText=q.d;
-    document.getElementById("points").innerText="Points: "+q.p;
+let remaining=names.filter(n=>!assigned.includes(n));
+let selected=remaining[Math.floor(Math.random()*remaining.length)];
+assigned.push(selected);
 
-    let teamIndex=turn%2;
+const wheel=document.getElementById('wheel');
+const rotation=3600+Math.random()*360;
+wheel.style.transform=`rotate(${rotation}deg)`;
 
-    document.getElementById("action").innerHTML=
-    `<button class="addBtn" onclick="add(${teamIndex})">+ ${teams[teamIndex]}</button>
-     <button class="minusBtn" onclick="minus(${teamIndex})">- ${teams[teamIndex]}</button>`;
+setTimeout(()=>{
+document.getElementById('selectedName').innerHTML=`${selected} assigned!`;
+let smallest=teams.reduce((a,b)=>a.players.length<=b.players.length?a:b);
+smallest.players.push(selected);
 
-    turn++;
+if(assigned.length===names.length){
+setTimeout(showTeams,1500);
+}
+},5000);
+}
 
-    let t=q.t;
-    document.getElementById("timer").innerText=t;
+function showTeams(){
+showScreen('teamsScreen');
+const container=document.getElementById('teamsContainer');
+container.innerHTML='';
 
-    clearInterval(timerInt);
-    timerInt=setInterval(()=>{
-        t--;
-        document.getElementById("timer").innerText=t;
-        if(t<=0){
-            clearInterval(timerInt);
-            showAnswer();
-        }
-    },1000);
+teams.forEach((team,index)=>{
+let div=document.createElement('div');
+div.className='team-box';
+
+let html=`<input value="${team.name}" onchange="changeTeamName(${index},this.value)"><br><br>`;
+
+team.players.forEach((p,i)=>{
+html+=`<div class='player'>${p}<br>
+<button onclick="movePlayer(${index},${i})">Move</button>
+<button onclick="removePlayer(${index},${i})">Delete</button>
+</div>`;
+});
+
+html+=`<button onclick="addPlayer(${index})">Add Player</button>`;
+
+div.innerHTML=html;
+container.appendChild(div);
+});
+}
+
+function changeTeamName(index,val){teams[index].name=val;}
+
+function movePlayer(teamIndex,playerIndex){
+let target=prompt('Move to team number:');
+if(!target)return;
+target=parseInt(target)-1;
+if(target>=0 && target<teamCount){
+let p=teams[teamIndex].players.splice(playerIndex,1)[0];
+teams[target].players.push(p);
+showTeams();
+}
+}
+
+function removePlayer(teamIndex,playerIndex){
+teams[teamIndex].players.splice(playerIndex,1);
+showTeams();
+}
+
+function addPlayer(teamIndex){
+let name=prompt('Player name');
+if(name){
+teams[teamIndex].players.push(name);
+showTeams();
+}
+}
+
+function startQuiz(){
+showScreen('quizScreen');
+showQuestion();
+}
+
+function showQuestion(){
+const qs=questionSets[teamCount];
+
+if(currentQuestion>=qs.length){
+checkWinner();
+return;
+}
+
+const q=qs[currentQuestion];
+currentTeam=currentQuestion%teamCount;
+
+teamTurn.innerHTML=`🎯 ${teams[currentTeam].name} Turn`;
+difficulty.innerHTML=`Difficulty: ${q.d}`;
+points.innerHTML=`Points: ${q.p}`;
+question.innerHTML=q.q;
+realAnswer.innerHTML='';
+
+answers.innerHTML='';
+q.choices.forEach(c=>{
+let btn=document.createElement('button');
+btn.className='answer-btn';
+btn.innerHTML=c;
+answers.appendChild(btn);
+});
+
+startTimer(q.t);
+updateScores();
+}
+
+function startTimer(sec){
+clearInterval(timer);
+let time=sec;
+document.getElementById('timer').innerHTML=time;
+
+ timer=setInterval(()=>{
+time--;
+document.getElementById('timer').innerHTML=time;
+if(time<=0){clearInterval(timer);}
+},1000);
 }
 
 function showAnswer(){
-    document.getElementById("answer").innerText="Answer: "+currentQ.a;
+const q=questionSets[teamCount][currentQuestion];
+realAnswer.innerHTML='✅ Answer: '+q.a;
 }
 
-function add(i){
-    scores[i]+=currentQ.p;
-    updateScore();
-    closeQ();
+function correctAnswer(){
+const q=questionSets[teamCount][currentQuestion];
+scores[currentTeam]+=q.p;
+nextQuestion();
 }
 
-function minus(i){
-    scores[i]-=currentQ.p;
-    updateScore();
-    closeQ();
+function wrongAnswer(){
+nextQuestion();
 }
 
-function updateScore(){
-    document.getElementById("s0").innerText=scores[0];
-    document.getElementById("s1").innerText=scores[1];
+function nextQuestion(){
+currentQuestion++;
+showQuestion();
 }
 
-function closeQ(){
-    document.getElementById("popup").style.display="none";
-    clearInterval(timerInt);
-    if(used===20) showWinner();
+function updateScores(){
+let html='';
+for(let i=0;i<teamCount;i++){
+html+=`<h2>${teams[i].name}: ${scores[i]} pts</h2>`;
+}
+scoreboard.innerHTML=html;
 }
 
-function firework(x,y){
-    for(let i=0;i<30;i++){
-        let p=document.createElement("div");
-        p.className="particle";
-        p.style.background=`hsl(${Math.random()*360},100%,50%)`;
-        p.style.left=x+"px";
-        p.style.top=y+"px";
+function checkWinner(){
+let max=Math.max(...scores);
+let winners=[];
 
-        let angle=Math.random()*2*Math.PI;
-        let speed=Math.random()*5;
+scores.forEach((s,i)=>{
+if(s===max) winners.push(i);
+});
 
-        let vx=Math.cos(angle)*speed;
-        let vy=Math.sin(angle)*speed;
-
-        document.body.appendChild(p);
-
-        let life=60;
-        let int=setInterval(()=>{
-            life--;
-            vx*=0.98;
-            vy*=0.98;
-            vy+=0.05;
-
-            p.style.left=(parseFloat(p.style.left)+vx)+"px";
-            p.style.top=(parseFloat(p.style.top)+vy)+"px";
-            p.style.opacity=life/60;
-
-            if(life<=0){
-                clearInterval(int);
-                p.remove();
-            }
-        },16);
-    }
+if(winners.length>1){
+showBonus();
+}else{
+showWinner(winners[0]);
+}
 }
 
-function showWinner(){
-    let win=scores[0]>scores[1]?0:1;
-    let lose=win===0?1:0;
+function showBonus(){
+showScreen('bonusScreen');
+const bonus={
+q:'What process allows gas exchange?',
+a:'Diffusion'
+};
 
-    document.getElementById("winnerScreen").style.display="block";
+bonusQuestion.innerHTML=bonus.q;
+bonusAnswer.innerHTML='Answer: '+bonus.a;
 
-    document.getElementById("winnerText").innerHTML=
-    `👑 ${teams[win]} 🏆<br><br>
-     ❌ ${teams[lose]} (LOSER)`;
+let t=30;
+bonusTimer.innerHTML=t;
 
-    document.getElementById("scores").innerHTML=
-    `${teams[0]}: ${scores[0]}<br><br>${teams[1]}: ${scores[1]}`;
+let x=setInterval(()=>{
+t--;
+bonusTimer.innerHTML=t;
+if(t<=0) clearInterval(x);
+},1000);
 
-    setInterval(()=>{
-        firework(Math.random()*window.innerWidth, Math.random()*window.innerHeight/2);
-    },500);
+if(teamCount===2){
+document.getElementById('team3bonus').style.display='none';
+}
+}
+
+function giveBonus(team){
+scores[team]+=20;
+let max=Math.max(...scores);
+showWinner(scores.indexOf(max));
+}
+
+function showWinner(index){
+showScreen('winnerScreen');
+
+winnerText.innerHTML=`👑 ${teams[index].name} WINNERS 👑`;
+
+let html='';
+
+scores.forEach((s,i)=>{
+html+=`<h2>${teams[i].name}: ${s} pts</h2>`;
+});
+
+finalScores.innerHTML=html;
+}
+
+function showScreen(id){
+document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+document.getElementById(id).classList.add('active');
 }
 
 </script>
-
 </body>
 </html>
+
